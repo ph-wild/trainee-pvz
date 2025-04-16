@@ -1,0 +1,17 @@
+db:
+  connection: "postgres://mx:mxpassword@localhost:5444/mx?sslmode=disable"
+
+http_server:
+  http_port: "8080"
+
+grps:
+  grps_port: "3000"
+
+prometheus:
+  prometheus_port: "9000"
+
+auth:
+  dummy_token_prefix: "dummy-token-for-"
+
+limits:
+  pagination_limit: 10
