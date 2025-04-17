@@ -1,8 +1,9 @@
 db:
-  connection: "postgres://mx:mxpassword@localhost:5444/mx?sslmode=disable"
+  connection: "postgres://pvz:pvzpassword@localhost:5445/pvz?sslmode=disable"
 
 http_server:
   http_port: "8080"
+  timeout_ms: 1000
 
 grps:
   grps_port: "3000"
@@ -12,6 +13,8 @@ prometheus:
 
 auth:
   dummy_token_prefix: "dummy-token-for-"
+  jwt_secret: "super-secret-key"
+  jwt_expiration_minutes: 60
 
 limits:
   pagination_limit: 10

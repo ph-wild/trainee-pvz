@@ -1,5 +1,5 @@
 services:
-  db-mx:
+  db-pvz:
     image: postgres:12
     environment:
       POSTGRES_DB: pvz

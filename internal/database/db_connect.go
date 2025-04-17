@@ -1,16 +1,16 @@
 package database
 
 import (
-	"log"
+	"context"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
 
-func ConnectDB(connString string) *sqlx.DB {
-	db, err := sqlx.Connect("postgres", connString)
+func ConnectDB(ctx context.Context, connString string) (*sqlx.DB, error) {
+	db, err := sqlx.ConnectContext(ctx, "postgres", connString)
 	if err != nil {
-		log.Fatalf("Failed to connect to DB: %v", err)
+		return nil, err
 	}
-	return db
+	return db, nil
 }

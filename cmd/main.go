@@ -5,13 +5,17 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"time"
 
 	"log/slog"
 	"net/http"
 
 	"trainee-pvz/config"
+	"trainee-pvz/internal/auth"
 	"trainee-pvz/internal/database"
 	"trainee-pvz/internal/handler"
+	"trainee-pvz/internal/repository"
+	"trainee-pvz/internal/service"
 )
 
 func main() {
@@ -26,10 +30,36 @@ func main() {
 		return
 	}
 
-	db := database.ConnectDB(cfg.DB.Connection)
+	db, err := database.ConnectDB(ctx, cfg.DB.Connection)
+	if err != nil {
+		slog.Error("failed to connect", slog.Any("err", err))
+		<-ctx.Done()
+		return
+	}
 	defer db.Close()
 
-	server := handler.NewServer()
+	userRepo := repository.NewUserRepository(db)
+	receptionRepo := repository.NewReceptionRepository(db)
+	productRepo := repository.NewProductRepository(db)
+	PVZRepo := repository.NewPVZRepository(db)
+
+	userService := service.NewUserService(userRepo)
+	receptionService := service.NewReceptionService(receptionRepo)
+	productService := service.NewProductService(productRepo)
+	PVZService := service.NewPVZService(PVZRepo)
+
+	services := handler.Services{
+		User:      userService,
+		Product:   productService,
+		Reception: receptionService,
+		PVZ:       PVZService,
+	}
+
+	expiration := time.Duration(cfg.Auth.JWTExpirationMinutes) * time.Minute
+	jwtManager := auth.NewJWTManager(cfg.Auth.JWTSecret, expiration)
+
+	server := handler.NewServer(services, jwtManager, cfg)
+
 	router := server.Routes()
 
 	go func() {

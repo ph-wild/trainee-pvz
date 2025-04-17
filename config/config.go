@@ -21,7 +21,8 @@ type DbCfg struct {
 }
 
 type HTTPServerCfg struct {
-	Port string `yaml:"http_port"`
+	Port    string `yaml:"http_port"`
+	Timeout int    `yaml:"timeout_ms"`
 }
 
 type GRPSCfg struct {
@@ -33,11 +34,13 @@ type PrometheusCfg struct {
 }
 
 type AuthCfg struct {
-	DummyTokenPrefix string `yaml:"dummy_token_prefix"`
+	DummyTokenPrefix     string `yaml:"dummy_token_prefix"`
+	JWTSecret            string `yaml:"jwt_secret"`
+	JWTExpirationMinutes int    `yaml:"jwt_expiration_minutes"`
 }
 
 type LimitsCfg struct {
-	PaginationLimit string `yaml:"pagination_limit"`
+	PaginationLimit int `yaml:"pagination_limit"`
 }
 
 func GetConfig(path string) (Cfg, error) {
