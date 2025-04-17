@@ -12,12 +12,6 @@ import (
 	"trainee-pvz/internal/models"
 )
 
-// type ProductRepository interface {
-// 	Add(ctx context.Context, product models.Product) error
-// 	GetLastReceptionID(ctx context.Context, pvzID string) (string, error)
-// 	DeleteLastInReception(ctx context.Context, pvzID string) error
-// }
-
 type ProductRepository struct {
 	db *sqlx.DB
 }

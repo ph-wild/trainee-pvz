@@ -12,13 +12,6 @@ import (
 	"trainee-pvz/internal/models"
 )
 
-// type ReceptionRepository interface {
-// 	HasOpenReception(ctx context.Context, pvzID string) (bool, error)
-// 	Create(ctx context.Context, r models.Reception) error
-// 	GetOpenReceptionID(ctx context.Context, pvzID string) (string, error)
-// 	CloseReception(ctx context.Context, receptionID string) error
-// }
-
 type ReceptionRepository struct {
 	db *sqlx.DB
 }

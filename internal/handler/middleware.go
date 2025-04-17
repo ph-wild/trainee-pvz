@@ -1,7 +1,9 @@
 package handler
 
 import (
+	"bytes"
 	"context"
+	"io"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -67,6 +69,12 @@ func (s *Server) LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 
+		// var bodyBytes []byte
+		// if r.Body != nil {
+		// 	bodyBytes, _ = io.ReadAll(r.Body)
+		// }
+		// r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+
 		ww := &statusResponseWriter{ResponseWriter: w, statusCode: http.StatusOK}
 		next.ServeHTTP(ww, r)
 
@@ -74,6 +82,7 @@ func (s *Server) LoggingMiddleware(next http.Handler) http.Handler {
 			slog.String("method", r.Method),
 			slog.String("path", r.URL.Path),
 			slog.Int("status", ww.statusCode),
+			//slog.String("body", string(bodyBytes)),
 			slog.Duration("duration", time.Since(start)),
 		)
 	})

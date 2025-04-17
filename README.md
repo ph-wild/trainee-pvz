@@ -31,4 +31,8 @@ http://localhost:8080/swagger/index.html
 
 ## graceful shutdown
 
-## make run запуск
+## make run запуск 
+
+## и make test
+лежат в service
+добавлены интеграционные

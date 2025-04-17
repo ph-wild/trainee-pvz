@@ -3,14 +3,18 @@ package service
 import (
 	"context"
 	"trainee-pvz/internal/models"
-	"trainee-pvz/internal/repository"
 )
 
-type UserService struct {
-	repo *repository.UserRepository
+type UserRepository interface {
+	Create(ctx context.Context, user models.User) error
+	GetByEmail(ctx context.Context, email string) (models.User, error)
 }
 
-func NewUserService(repo *repository.UserRepository) *UserService {
+type UserService struct {
+	repo UserRepository // *repository.UserRepository
+}
+
+func NewUserService(repo UserRepository) *UserService { // repo *repository.UserRepository
 	return &UserService{repo: repo}
 }
 

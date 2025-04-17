@@ -5,14 +5,22 @@ import (
 
 	er "trainee-pvz/internal/errors"
 	"trainee-pvz/internal/models"
-	"trainee-pvz/internal/repository"
+	//"trainee-pvz/internal/repository"
 )
 
-type ReceptionService struct {
-	repo *repository.ReceptionRepository
+type ReceptionRepository interface {
+	HasOpenReception(ctx context.Context, pvzID string) (bool, error)
+	GetLastReceptionID(ctx context.Context, pvzID string) (string, error)
+	Create(ctx context.Context, r models.Reception) error
+	GetOpenReceptionID(ctx context.Context, pvzID string) (string, error)
+	Close(ctx context.Context, id string) error
 }
 
-func NewReceptionService(repo *repository.ReceptionRepository) *ReceptionService {
+type ReceptionService struct {
+	repo ReceptionRepository
+}
+
+func NewReceptionService(repo ReceptionRepository) *ReceptionService {
 	return &ReceptionService{repo: repo}
 }
 

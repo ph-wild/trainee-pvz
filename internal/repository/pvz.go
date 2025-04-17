@@ -11,15 +11,6 @@ import (
 	"trainee-pvz/internal/models"
 )
 
-// type PVZRepository interface {
-// 	Create(ctx context.Context, pvz models.PVZ) error
-// 	ListWithReceptionsAndProducts(
-// 		ctx context.Context,
-// 		start, end *time.Time,
-// 		page, limit int,
-// 	) ([]PVZWithReceptions, error)
-// }
-
 type PVZRepository struct {
 	db *sqlx.DB
 }

@@ -7,14 +7,22 @@ import (
 	er "trainee-pvz/internal/errors"
 	"trainee-pvz/internal/models"
 	"trainee-pvz/internal/openapi"
-	"trainee-pvz/internal/repository"
 )
 
-type PVZService struct {
-	repo *repository.PVZRepository
+type PVZRepository interface {
+	Create(ctx context.Context, pvz models.PVZ) error
+	ListWithReceptionsAndProducts(
+		ctx context.Context,
+		start, end *time.Time,
+		page, limit int,
+	) ([]models.PVZWithReceptions, error)
 }
 
-func NewPVZService(repo *repository.PVZRepository) *PVZService {
+type PVZService struct {
+	repo PVZRepository //*repository.PVZRepository
+}
+
+func NewPVZService(repo PVZRepository) *PVZService {
 	return &PVZService{repo: repo}
 }
 

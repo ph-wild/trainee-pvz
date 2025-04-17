@@ -4,15 +4,20 @@ import (
 	"context"
 
 	"trainee-pvz/internal/models"
-	"trainee-pvz/internal/repository"
+	//"trainee-pvz/internal/repository"
 	//er "github.com/pkg/errors"
 )
 
-type ProductService struct {
-	repo *repository.ProductRepository
+type ProductRepository interface {
+	Add(ctx context.Context, product models.Product) error
+	DeleteLast(ctx context.Context, pvzID string) error
 }
 
-func NewProductService(repo *repository.ProductRepository) *ProductService {
+type ProductService struct {
+	repo ProductRepository //*repository.ProductRepository
+}
+
+func NewProductService(repo ProductRepository) *ProductService { //*repository.ProductRepository
 	return &ProductService{repo: repo}
 }
 
