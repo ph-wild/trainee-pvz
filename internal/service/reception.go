@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 
+	"github.com/pkg/errors"
+
 	er "trainee-pvz/internal/errors"
 	"trainee-pvz/internal/models"
 	//"trainee-pvz/internal/repository"
@@ -17,11 +19,12 @@ type ReceptionRepository interface {
 }
 
 type ReceptionService struct {
-	repo ReceptionRepository
+	repo    ReceptionRepository
+	metrics metrics
 }
 
-func NewReceptionService(repo ReceptionRepository) *ReceptionService {
-	return &ReceptionService{repo: repo}
+func NewReceptionService(repo ReceptionRepository, m metrics) *ReceptionService {
+	return &ReceptionService{repo: repo, metrics: m}
 }
 
 func (s *ReceptionService) CreateReception(ctx context.Context, rec models.Reception) error {
@@ -32,7 +35,14 @@ func (s *ReceptionService) CreateReception(ctx context.Context, rec models.Recep
 	if hasOpen {
 		return er.ErrReceptionAlreadyExists
 	}
-	return s.repo.Create(ctx, rec)
+
+	err = s.repo.Create(ctx, rec)
+	if err != nil {
+		return errors.Wrap(err, "can't create reception")
+	}
+
+	s.metrics.SaveEntityCount(1, "reception")
+	return nil
 }
 
 func (s *ReceptionService) CloseReception(ctx context.Context, id string) error {

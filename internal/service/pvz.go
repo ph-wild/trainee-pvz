@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/pkg/errors"
+
 	er "trainee-pvz/internal/errors"
 	"trainee-pvz/internal/models"
 	"trainee-pvz/internal/openapi"
@@ -18,18 +20,29 @@ type PVZRepository interface {
 	) ([]models.PVZWithReceptions, error)
 }
 
-type PVZService struct {
-	repo PVZRepository //*repository.PVZRepository
+type metrics interface {
+	SaveEntityCount(value float64, entity string)
 }
 
-func NewPVZService(repo PVZRepository) *PVZService {
-	return &PVZService{repo: repo}
+type PVZService struct {
+	repo    PVZRepository //*repository.PVZRepository
+	metrics metrics
+}
+
+func NewPVZService(repo PVZRepository, m metrics) *PVZService {
+	return &PVZService{repo: repo, metrics: m}
 }
 
 func (s *PVZService) CreatePVZ(ctx context.Context, pvz models.PVZ) error {
 	switch pvz.City {
 	case string(openapi.Москва), string(openapi.Казань), string(openapi.СанктПетербург):
-		return s.repo.Create(ctx, pvz)
+		err := s.repo.Create(ctx, pvz)
+		if err != nil {
+			return errors.Wrap(err, "can't create PVZ")
+		}
+
+		s.metrics.SaveEntityCount(1, "pvz")
+		return nil
 	default:
 		return er.ErrUnsupportedCity
 	}

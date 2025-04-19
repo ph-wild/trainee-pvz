@@ -50,6 +50,7 @@ type Server struct {
 	Service    Services
 	JWTManager *auth.JWTManager
 	Cfg        config.Cfg
+	metrics    metrics
 }
 
 type Services struct {
@@ -59,11 +60,16 @@ type Services struct {
 	PVZ       PVZServiceInterface
 }
 
-func NewServer(service Services, jwt *auth.JWTManager, cfg config.Cfg) *Server {
+type metrics interface {
+	SaveHTTPDuration(timeSince time.Time, path string, code int, method string)
+}
+
+func NewServer(service Services, jwt *auth.JWTManager, cfg config.Cfg, m metrics) *Server {
 	return &Server{
 		Service:    service,
 		JWTManager: jwt,
 		Cfg:        cfg,
+		metrics:    m,
 	}
 }
 
@@ -185,6 +191,7 @@ func (s *Server) CreatePVZHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		slog.Error("invalid pvz json", slog.Any("err", err))
 		http.Error(w, `{"message":"invalid request"}`, http.StatusBadRequest)
+		//metrics.SaveHTTPCount(1, r.URL.Path, http.StatusBadRequest, r.Method)
 		return
 	}
 
@@ -201,6 +208,7 @@ func (s *Server) CreatePVZHandler(w http.ResponseWriter, r *http.Request) {
 	err = s.Service.PVZ.CreatePVZ(ctx, pvz)
 	if errors.Is(err, er.ErrUnsupportedCity) {
 		http.Error(w, `{"message":"unsupported city"}`, http.StatusBadRequest)
+		//metrics.SaveHTTPCount(1, r.URL.Path, http.StatusInternalServerError, r.Method)
 		return
 	}
 
@@ -209,6 +217,8 @@ func (s *Server) CreatePVZHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"message":"internal error"}`, http.StatusInternalServerError)
 		return
 	}
+
+	slog.Info("pvz has been created", slog.Any("info:", pvz))
 
 	openapiUUID := openapi_types.UUID(id)
 	resp := openapi.PVZ{
@@ -257,6 +267,7 @@ func (s *Server) CreateReceptionHandler(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, `{"message":"internal error"}`, http.StatusInternalServerError)
 		return
 	}
+	slog.Info("reception has been created", slog.Any("info:", reception))
 
 	openapiID := openapi_types.UUID(id)
 	resp := openapi.Reception{
@@ -313,6 +324,7 @@ func (s *Server) AddProductHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"message":"internal error"}`, http.StatusInternalServerError)
 		return
 	}
+	slog.Info("product has been created", slog.Any("info:", product))
 
 	openapiID := openapi_types.UUID(productID)
 	resp := openapi.Product{
@@ -350,6 +362,9 @@ func (s *Server) CloseReceptionHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"message":"internal error"}`, http.StatusInternalServerError)
 		return
 	}
+
+	slog.Info("reception has been deteted", slog.Any("info:", receptionID))
+
 	openapiID := openapi_types.UUID(uuid.MustParse(receptionID))
 	parsedPvzID := openapi_types.UUID(uuid.MustParse(pvzID))
 
@@ -386,6 +401,9 @@ func (s *Server) DeleteLastProductHandler(w http.ResponseWriter, r *http.Request
 		http.Error(w, `{"message":"internal error"}`, http.StatusInternalServerError)
 		return
 	}
+
+	slog.Info("last product has been deteted", slog.Any("info:", pvzID))
+
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -496,9 +514,9 @@ func (s *Server) ListPVZHandler(w http.ResponseWriter, r *http.Request) {
 func (s *Server) Routes() *chi.Mux {
 	router := chi.NewRouter()
 	router.Use(s.LoggingMiddleware)
+	router.Use(s.PrometheusMiddleware)
 
-	router.Mount("/swagger", api.Routes())
-
+	router.Mount("/swagger", api.Routes(router))
 	router.Post("/register", s.RegisterHandler)
 	router.Post("/login", s.LoginHandler)
 	router.Post("/dummyLogin", s.DummyLoginHandler)

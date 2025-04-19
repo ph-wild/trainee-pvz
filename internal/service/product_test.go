@@ -6,9 +6,16 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
 	"trainee-pvz/internal/models"
 	"trainee-pvz/internal/service"
 )
+
+type fakeMetrics struct{}
+
+func (f *fakeMetrics) SaveEntityCount(value float64, entity string) {
+
+}
 
 type fakeProductRepo struct {
 	addErr    error
@@ -24,7 +31,7 @@ func (f *fakeProductRepo) DeleteLast(ctx context.Context, pvzID string) error {
 }
 func TestProductService_AddProduct_Success(t *testing.T) {
 	repo := &fakeProductRepo{}
-	svc := service.NewProductService(repo)
+	svc := service.NewProductService(repo, &fakeMetrics{})
 
 	err := svc.AddProduct(context.Background(), models.Product{
 		ID:          "id1",
@@ -36,7 +43,7 @@ func TestProductService_AddProduct_Success(t *testing.T) {
 
 func TestProductService_AddProduct_Fail(t *testing.T) {
 	repo := &fakeProductRepo{addErr: errors.New("fail add")}
-	svc := service.NewProductService(repo)
+	svc := service.NewProductService(repo, &fakeMetrics{})
 
 	err := svc.AddProduct(context.Background(), models.Product{
 		ID:          "id2",
@@ -48,7 +55,7 @@ func TestProductService_AddProduct_Fail(t *testing.T) {
 }
 func TestProductService_DeleteLastProduct_Success(t *testing.T) {
 	repo := &fakeProductRepo{}
-	svc := service.NewProductService(repo)
+	svc := service.NewProductService(repo, &fakeMetrics{})
 
 	err := svc.DeleteLastProduct(context.Background(), "pvz1")
 	assert.NoError(t, err)
@@ -56,7 +63,7 @@ func TestProductService_DeleteLastProduct_Success(t *testing.T) {
 
 func TestProductService_DeleteLastProduct_Fail(t *testing.T) {
 	repo := &fakeProductRepo{deleteErr: errors.New("nothing to delete")}
-	svc := service.NewProductService(repo)
+	svc := service.NewProductService(repo, &fakeMetrics{})
 
 	err := svc.DeleteLastProduct(context.Background(), "pvz2")
 	assert.Error(t, err)

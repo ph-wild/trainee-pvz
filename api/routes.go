@@ -7,8 +7,8 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
-func Routes() http.Handler {
-	r := chi.NewRouter()
+func Routes(r *chi.Mux) http.Handler {
+	// r := chi.NewRouter()
 
 	r.Get("/swagger.yaml", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "./api/swagger.yaml")

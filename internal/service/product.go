@@ -4,8 +4,9 @@ import (
 	"context"
 
 	"trainee-pvz/internal/models"
+
 	//"trainee-pvz/internal/repository"
-	//er "github.com/pkg/errors"
+	"github.com/pkg/errors"
 )
 
 type ProductRepository interface {
@@ -14,15 +15,22 @@ type ProductRepository interface {
 }
 
 type ProductService struct {
-	repo ProductRepository //*repository.ProductRepository
+	repo    ProductRepository //*repository.ProductRepository
+	metrics metrics
 }
 
-func NewProductService(repo ProductRepository) *ProductService { //*repository.ProductRepository
-	return &ProductService{repo: repo}
+func NewProductService(repo ProductRepository, m metrics) *ProductService { //*repository.ProductRepository
+	return &ProductService{repo: repo, metrics: m}
 }
 
 func (s *ProductService) AddProduct(ctx context.Context, p models.Product) error {
-	return s.repo.Add(ctx, p)
+	err := s.repo.Add(ctx, p)
+	if err != nil {
+		return errors.Wrap(err, "can't add product")
+	}
+
+	s.metrics.SaveEntityCount(1, "product")
+	return nil
 }
 
 func (s *ProductService) DeleteLastProduct(ctx context.Context, pvzID string) error {

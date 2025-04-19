@@ -36,3 +36,8 @@ http://localhost:8080/swagger/index.html
 ## и make test
 лежат в service
 добавлены интеграционные
+
+# promethreus
+ localhost:9000/metrics
+
+ # + compose up / down

@@ -3,17 +3,18 @@ package main
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"net/http"
 	"os"
 	"os/signal"
 	"time"
 
-	"log/slog"
-	"net/http"
-
 	"trainee-pvz/config"
 	"trainee-pvz/internal/auth"
 	"trainee-pvz/internal/database"
+	proto_pvz "trainee-pvz/internal/grpc"
 	"trainee-pvz/internal/handler"
+	"trainee-pvz/internal/metrics"
 	"trainee-pvz/internal/repository"
 	"trainee-pvz/internal/service"
 )
@@ -38,15 +39,17 @@ func main() {
 	}
 	defer db.Close()
 
+	m := metrics.InitMetrics()
+
 	userRepo := repository.NewUserRepository(db)
 	receptionRepo := repository.NewReceptionRepository(db)
 	productRepo := repository.NewProductRepository(db)
 	PVZRepo := repository.NewPVZRepository(db)
 
 	userService := service.NewUserService(userRepo)
-	receptionService := service.NewReceptionService(receptionRepo)
-	productService := service.NewProductService(productRepo)
-	PVZService := service.NewPVZService(PVZRepo)
+	receptionService := service.NewReceptionService(receptionRepo, m)
+	productService := service.NewProductService(productRepo, m)
+	PVZService := service.NewPVZService(PVZRepo, m)
 
 	services := handler.Services{
 		User:      userService,
@@ -58,9 +61,18 @@ func main() {
 	expiration := time.Duration(cfg.Auth.JWTExpirationMinutes) * time.Minute
 	jwtManager := auth.NewJWTManager(cfg.Auth.JWTSecret, expiration)
 
-	server := handler.NewServer(services, jwtManager, cfg)
-
+	server := handler.NewServer(services, jwtManager, cfg, m)
 	router := server.Routes()
+
+	go metrics.RunMetricServer(cfg.Prometheus.Port)
+
+	go func() {
+		err = proto_pvz.StartGRPCServer(PVZRepo, fmt.Sprintf(":%s", cfg.GRPC.Port))
+		if err != nil {
+			slog.Error("Can't start GRPC:", slog.Any("error", err))
+		}
+	}()
+	slog.Info("Starting server on", slog.String("port", cfg.GRPC.Port))
 
 	go func() {
 		err := http.ListenAndServe(fmt.Sprintf(":%s", cfg.HTTP.Port), router)

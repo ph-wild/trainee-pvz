@@ -44,7 +44,7 @@ func (f *fakeReceptionRepo) GetOpenReceptionID(ctx context.Context, pvzID string
 
 func TestReceptionService_CreateReception_Success(t *testing.T) {
 	repo := &fakeReceptionRepo{hasOpen: false}
-	svc := service.NewReceptionService(repo)
+	svc := service.NewReceptionService(repo, &fakeMetrics{})
 
 	err := svc.CreateReception(context.Background(), models.Reception{
 		ID:    "r1",
@@ -55,7 +55,7 @@ func TestReceptionService_CreateReception_Success(t *testing.T) {
 
 func TestReceptionService_CreateReception_AlreadyExists(t *testing.T) {
 	repo := &fakeReceptionRepo{hasOpen: true}
-	svc := service.NewReceptionService(repo)
+	svc := service.NewReceptionService(repo, &fakeMetrics{})
 
 	err := svc.CreateReception(context.Background(), models.Reception{
 		ID:    "r2",
@@ -68,7 +68,7 @@ func TestReceptionService_CreateReception_AlreadyExists(t *testing.T) {
 
 func TestReceptionService_CreateReception_HasOpenErr(t *testing.T) {
 	repo := &fakeReceptionRepo{hasOpenErr: errors.New("db error")}
-	svc := service.NewReceptionService(repo)
+	svc := service.NewReceptionService(repo, &fakeMetrics{})
 
 	err := svc.CreateReception(context.Background(), models.Reception{
 		ID:    "r3",
@@ -80,7 +80,7 @@ func TestReceptionService_CreateReception_HasOpenErr(t *testing.T) {
 
 func TestReceptionService_CloseReception_Success(t *testing.T) {
 	repo := &fakeReceptionRepo{}
-	svc := service.NewReceptionService(repo)
+	svc := service.NewReceptionService(repo, &fakeMetrics{})
 
 	err := svc.CloseReception(context.Background(), "reception-id")
 	assert.NoError(t, err)
@@ -88,7 +88,7 @@ func TestReceptionService_CloseReception_Success(t *testing.T) {
 
 func TestReceptionService_GetLastReceptionID_Success(t *testing.T) {
 	repo := &fakeReceptionRepo{lastReceptionID: "last-id"}
-	svc := service.NewReceptionService(repo)
+	svc := service.NewReceptionService(repo, &fakeMetrics{})
 
 	id, err := svc.GetLastReceptionID(context.Background(), "pvz-id")
 	assert.NoError(t, err)
@@ -97,7 +97,7 @@ func TestReceptionService_GetLastReceptionID_Success(t *testing.T) {
 
 func TestReceptionService_GetOpenReceptionID_Success(t *testing.T) {
 	repo := &fakeReceptionRepo{openReceptionID: "open-id"}
-	svc := service.NewReceptionService(repo)
+	svc := service.NewReceptionService(repo, &fakeMetrics{})
 
 	id, err := svc.GetOpenReceptionID(context.Background(), "pvz-id")
 	assert.NoError(t, err)
@@ -106,7 +106,7 @@ func TestReceptionService_GetOpenReceptionID_Success(t *testing.T) {
 
 func TestReceptionService_GetOpenReceptionID_Error(t *testing.T) {
 	repo := &fakeReceptionRepo{openReceptionErr: errors.New("no open")}
-	svc := service.NewReceptionService(repo)
+	svc := service.NewReceptionService(repo, &fakeMetrics{})
 
 	_, err := svc.GetOpenReceptionID(context.Background(), "pvz-id")
 	assert.Error(t, err)

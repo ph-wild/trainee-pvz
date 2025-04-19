@@ -24,6 +24,12 @@ import (
 var cities = []string{"Москва", "Санкт-Петербург", "Казань"}
 var productTypes = []string{"одежда", "обувь", "электроника"}
 
+type fakeMetrics struct{}
+
+func (f *fakeMetrics) SaveEntityCount(value float64, entity string) {}
+
+func (f *fakeMetrics) SaveHTTPDuration(timeSince time.Time, path string, code int, method string) {}
+
 func randomCity(r *rand.Rand) string {
 	return cities[r.IntN(len(cities))]
 }
@@ -44,9 +50,9 @@ func TestEndToEndPVZFlow(t *testing.T) {
 	productRepo := repository.NewProductRepository(db)
 
 	userService := service.NewUserService(userRepo)
-	pvzService := service.NewPVZService(pvzRepo)
-	receptionService := service.NewReceptionService(receptionRepo)
-	productService := service.NewProductService(productRepo)
+	pvzService := service.NewPVZService(pvzRepo, &fakeMetrics{})
+	receptionService := service.NewReceptionService(receptionRepo, &fakeMetrics{})
+	productService := service.NewProductService(productRepo, &fakeMetrics{})
 
 	services := handler.Services{
 		User:      userService,
@@ -55,7 +61,7 @@ func TestEndToEndPVZFlow(t *testing.T) {
 		Product:   productService,
 	}
 
-	s := handler.NewServer(services, nil, cfg) //  без JWT
+	s := handler.NewServer(services, nil, cfg, &fakeMetrics{}) //  without JWT
 
 	srv := httptest.NewServer(s.Routes())
 	defer srv.Close()

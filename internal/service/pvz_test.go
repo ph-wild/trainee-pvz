@@ -36,7 +36,7 @@ func (f *fakePVZRepo) ListWithReceptionsAndProducts(
 
 func TestPVZService_CreatePVZ_Success(t *testing.T) {
 	repo := &fakePVZRepo{}
-	svc := service.NewPVZService(repo)
+	svc := service.NewPVZService(repo, &fakeMetrics{})
 
 	err := svc.CreatePVZ(context.Background(), models.PVZ{
 		ID:   "1",
@@ -47,7 +47,7 @@ func TestPVZService_CreatePVZ_Success(t *testing.T) {
 
 func TestPVZService_CreatePVZ_UnsupportedCity(t *testing.T) {
 	repo := &fakePVZRepo{}
-	svc := service.NewPVZService(repo)
+	svc := service.NewPVZService(repo, &fakeMetrics{})
 
 	err := svc.CreatePVZ(context.Background(), models.PVZ{
 		ID:   "2",
@@ -59,7 +59,7 @@ func TestPVZService_CreatePVZ_UnsupportedCity(t *testing.T) {
 
 func TestPVZService_CreatePVZ_RepoError(t *testing.T) {
 	repo := &fakePVZRepo{createErr: errors.New("db error")}
-	svc := service.NewPVZService(repo)
+	svc := service.NewPVZService(repo, &fakeMetrics{})
 
 	err := svc.CreatePVZ(context.Background(), models.PVZ{
 		ID:   "3",
@@ -77,7 +77,7 @@ func TestPVZService_ListPVZ_Success(t *testing.T) {
 			},
 		},
 	}
-	svc := service.NewPVZService(repo)
+	svc := service.NewPVZService(repo, &fakeMetrics{})
 
 	result, err := svc.ListPVZ(context.Background(), nil, nil, 1, 10)
 	assert.NoError(t, err)
@@ -87,7 +87,7 @@ func TestPVZService_ListPVZ_Success(t *testing.T) {
 
 func TestPVZService_ListPVZ_Empty(t *testing.T) {
 	repo := &fakePVZRepo{data: []models.PVZWithReceptions{}}
-	svc := service.NewPVZService(repo)
+	svc := service.NewPVZService(repo, &fakeMetrics{})
 
 	result, err := svc.ListPVZ(context.Background(), nil, nil, 1, 10)
 	assert.NoError(t, err)
@@ -96,7 +96,7 @@ func TestPVZService_ListPVZ_Empty(t *testing.T) {
 
 func TestPVZService_ListPVZ_Error(t *testing.T) {
 	repo := &fakePVZRepo{listErr: errors.New("list fail")}
-	svc := service.NewPVZService(repo)
+	svc := service.NewPVZService(repo, &fakeMetrics{})
 
 	result, err := svc.ListPVZ(context.Background(), nil, nil, 1, 10)
 	assert.Error(t, err)
