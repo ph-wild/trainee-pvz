@@ -21,16 +21,16 @@ git clone github.com:ph-wild/trainee-pvz.git && cd trainee-pvz
 ```
 2. Соберите и запустите сервис.  
 Для настройки среды: `make up`  
-Для создания БД: `make migrate-up`  
+Для создания БД необходим goose (`go install github.com/pressly/goose/v3/cmd/goose@latest`): `make migrate-up`  
 Для запуска приложения: `make run`  
 ```
 make up && make migrate-up && make run
 ```
 Сервис будет доступен по следующим адресам:​  
-HTTP API: `http://localhost:8080`.  
-gRPC API: `localhost:3000`.  
-Метрики Prometheus: `http://localhost:9000/metrics​`.  
-Swagger: `http://localhost:8080/swagger/index.html`.  
+HTTP API: `http://localhost:8080`  
+gRPC API: `localhost:3000`  
+Метрики Prometheus: `http://localhost:9000/metrics​`  
+Swagger: `http://localhost:8080/swagger/index.html`  
 
 3. Для запуска unit-тестов с процентом покрытия выполните:
 ```
@@ -66,8 +66,6 @@ make test
 └── README.md                   # Документация
 ```
 В `internal/service` и `internal/repository` разделение на product.go, pvz.go, receprion.go для собственного удобства (можно было в один файл). Слой service не содержит много дополнительной логики, но мог бы, решено оставить. 
-
-// DI
 
 ## Схема базы данных
 ```
@@ -177,22 +175,11 @@ slog.Info("Got shutdown signal, exit program")
 ```
 
 ## config.yaml
-Необходимые для запуска параметры вынесены в файл `/config.yaml`.  
+Необходимые для запуска параметры вынесены в файл `/config.yaml`  
 В том числе, перечислены все необходимые по заданию порты.  
 Считывание файла в структуры производится в `/config/config.go`
 
 ## Миграции 
-Для миграций используется goose.  
-Запустить можно через `make migrate-up`
+Для миграций используется goose. Установка: `go install github.com/pressly/goose/v3/cmd/goose@latest`  
+Запуск через `make migrate-up`  
 Находятся в папке `/migrations`
-
-# Проблемы
-1. Оказалось, что swagger не совсем корректно работает с context в chi, поэтому в middleware для метрик пришлось добавить обработку:
-```
-path := r.URL.Path // fallback
-if rc := chi.RouteContext(r.Context()); rc != nil {
-	if p := rc.RoutePattern(); p != "" {
-		path = p
-	}
-}
-```
