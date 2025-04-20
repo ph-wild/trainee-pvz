@@ -4,10 +4,10 @@ import (
 	"context"
 	"log/slog"
 
-	"trainee-pvz/internal/models"
-
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
+
+	"trainee-pvz/internal/models"
 )
 
 type UserRepository struct {
@@ -25,6 +25,7 @@ func (r *UserRepository) Create(ctx context.Context, user models.User) error {
 		slog.Error("create user failed", slog.Any("err", err))
 		return errors.Wrap(err, "repo: create user")
 	}
+
 	return nil
 }
 
@@ -36,5 +37,6 @@ func (r *UserRepository) GetByEmail(ctx context.Context, email string) (models.U
 		slog.Error("get user by email failed", slog.Any("err", err))
 		return user, errors.Wrap(err, "repo: get user")
 	}
+
 	return user, nil
 }

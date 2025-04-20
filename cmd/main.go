@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"time"
 
 	"trainee-pvz/config"
 	"trainee-pvz/internal/auth"
@@ -26,15 +25,12 @@ func main() {
 	cfg, err := config.GetConfig("config.yaml")
 	if err != nil {
 		slog.Error("Can't read config.yaml", slog.Any("error", err))
-		<-ctx.Done()
-		slog.Info("Shutting down after config failure")
 		return
 	}
 
 	db, err := database.ConnectDB(ctx, cfg.DB.Connection)
 	if err != nil {
 		slog.Error("failed to connect", slog.Any("err", err))
-		<-ctx.Done()
 		return
 	}
 	defer db.Close()
@@ -58,8 +54,7 @@ func main() {
 		PVZ:       PVZService,
 	}
 
-	expiration := time.Duration(cfg.Auth.JWTExpirationMinutes) * time.Minute
-	jwtManager := auth.NewJWTManager(cfg.Auth.JWTSecret, expiration)
+	jwtManager := auth.NewJWTManager(cfg.Auth.JWTSecret, cfg.Auth.JWTExpirationMinutes)
 
 	server := handler.NewServer(services, jwtManager, cfg, m)
 	router := server.Routes()
@@ -72,7 +67,8 @@ func main() {
 			slog.Error("Can't start GRPC:", slog.Any("error", err))
 		}
 	}()
-	slog.Info("Starting server on", slog.String("port", cfg.GRPC.Port))
+
+	slog.Info("Starting GRPC server on", slog.String("port", cfg.GRPC.Port))
 
 	go func() {
 		err := http.ListenAndServe(fmt.Sprintf(":%s", cfg.HTTP.Port), router)
@@ -80,7 +76,8 @@ func main() {
 			slog.Error("Can't start service:", slog.Any("error", err))
 		}
 	}()
-	slog.Info("Starting server on", slog.String("port", cfg.HTTP.Port))
+
+	slog.Info("Starting HTTP server on", slog.String("port", cfg.HTTP.Port))
 
 	<-ctx.Done()
 	slog.Info("Got shutdown signal, exit program")

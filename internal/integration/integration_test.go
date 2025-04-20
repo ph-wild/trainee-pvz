@@ -9,16 +9,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
+	"github.com/stretchr/testify/require"
+
 	"trainee-pvz/config"
 	"trainee-pvz/internal/handler"
 	"trainee-pvz/internal/repository"
 	"trainee-pvz/internal/service"
-
-	"github.com/google/uuid"
-	"github.com/stretchr/testify/require"
-
-	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
 )
 
 var cities = []string{"Москва", "Санкт-Петербург", "Казань"}
@@ -68,7 +67,6 @@ func TestEndToEndPVZFlow(t *testing.T) {
 
 	// 1. CREATE PVZ
 	r := rand.New(rand.NewPCG(uint64(time.Now().UnixNano()), 0))
-	//value := r.IntN(3)
 	city := randomCity(r)
 	pvzID := uuid.New()
 	pvzPayload := map[string]any{

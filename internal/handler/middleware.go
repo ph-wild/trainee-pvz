@@ -1,9 +1,7 @@
 package handler
 
 import (
-	// "bytes"
 	"context"
-	// "io"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -16,14 +14,20 @@ type contextKey string
 
 const userCtxKey = contextKey("role")
 
-type statusResponseWriter struct {
+type statusRecorder struct {
 	http.ResponseWriter
-	statusCode int
+	Status       int
+	ResponseBody string
 }
 
-func (w *statusResponseWriter) WriteHeader(code int) {
-	w.statusCode = code
-	w.ResponseWriter.WriteHeader(code)
+func (r *statusRecorder) WriteHeader(status int) {
+	r.Status = status
+	r.ResponseWriter.WriteHeader(status)
+}
+
+func (r *statusRecorder) Write(body []byte) (int, error) {
+	r.ResponseBody = string(body)
+	return r.ResponseWriter.Write(body)
 }
 
 func (s *Server) RequireAuth(next http.Handler) http.Handler {
@@ -71,44 +75,21 @@ func (s *Server) LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 
-		// var bodyBytes []byte
-		// if r.Body != nil {
-		// 	bodyBytes, _ = io.ReadAll(r.Body)
-		// }
-		// r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
-
-		ww := &statusResponseWriter{ResponseWriter: w, statusCode: http.StatusOK}
+		ww := &statusRecorder{ResponseWriter: w, Status: http.StatusOK}
 		next.ServeHTTP(ww, r)
 
 		slog.Info("HTTP Request",
 			slog.String("method", r.Method),
 			slog.String("path", r.URL.Path),
-			slog.Int("status", ww.statusCode),
-			//slog.String("body", string(bodyBytes)),
+			slog.Int("status", ww.Status),
 			slog.Duration("duration", time.Since(start)),
 		)
 	})
 }
 
-type StatusRecorder struct {
-	http.ResponseWriter
-	Status       int
-	ResponseBody string
-}
-
-func (r *StatusRecorder) WriteHeader(status int) {
-	r.Status = status
-	r.ResponseWriter.WriteHeader(status)
-}
-
-func (r *StatusRecorder) Write(body []byte) (int, error) {
-	r.ResponseBody = string(body)
-	return r.ResponseWriter.Write(body)
-}
-
 func (s *Server) PrometheusMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		recorder := &StatusRecorder{
+		recorder := &statusRecorder{
 			ResponseWriter: w,
 			Status:         200,
 		}
@@ -118,12 +99,6 @@ func (s *Server) PrometheusMiddleware(next http.Handler) http.Handler {
 				path = p
 			}
 		}
-
-		// request, err := io.ReadAll(r.Body)
-		// if err != nil {
-		// 	slog.Info("http_logger: read request body")
-		// }
-		// r.Body = io.NopCloser(bytes.NewBuffer(request))
 
 		start := time.Now()
 		next.ServeHTTP(recorder, r)

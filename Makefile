@@ -11,9 +11,6 @@ run: build
 test:
 	go test -v -cover ./...
 
-lint:
-	golangci-lint run ./...
-
 clean:
 	rm -f $(BINARY)
 
@@ -23,15 +20,26 @@ fmt:
 tidy:
 	go mod tidy
 
+up:
+	docker compose up -d
+
+down:
+	docker compose down --rmi all --volumes
+
+migration:
+	goose -dir migrations postgres "postgres://pvz:pvzpassword@localhost:5445/pvz?sslmode=disable" up
+
 all: fmt tidy lint test build
 
 help:
 	@echo "Makefile for Go project:"
-	@echo "  make build   - Build the binary"
-	@echo "  make run     - Run the application"
-	@echo "  make test    - Run tests"
-	@echo "  make lint    - Run linter"
-	@echo "  make clean   - Remove built files"
-	@echo "  make fmt     - Format the code"
-	@echo "  make tidy    - Update dependencies"
-	@echo "  make all     - Run all steps (fmt, tidy, lint, test, build)"
+	@echo "  make build     - Build the binary"
+	@echo "  make run       - Run the application"
+	@echo "  make test      - Run tests"
+	@echo "  make clean     - Remove built files"
+	@echo "  make fmt       - Format the code"
+	@echo "  make tidy      - Update dependencies"
+	@echo "  make up        - Start DB and prometheus containers"
+	@echo "  make down      - Delete DB and prometheus containers with volumes"
+	@echo "  make migration - Goose migrations up"
+	@echo "  make all       - Run all steps (fmt, tidy, lint, test, build)"

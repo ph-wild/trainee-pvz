@@ -13,9 +13,7 @@ import (
 
 type fakeMetrics struct{}
 
-func (f *fakeMetrics) SaveEntityCount(value float64, entity string) {
-
-}
+func (f *fakeMetrics) SaveEntityCount(value float64, entity string) {}
 
 type fakeProductRepo struct {
 	addErr    error

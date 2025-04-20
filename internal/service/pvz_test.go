@@ -6,11 +6,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
 	"trainee-pvz/internal/models"
 	"trainee-pvz/internal/openapi"
 	"trainee-pvz/internal/service"
-
-	"github.com/stretchr/testify/assert"
 )
 
 type fakePVZRepo struct {

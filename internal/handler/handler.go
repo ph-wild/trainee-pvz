@@ -191,7 +191,6 @@ func (s *Server) CreatePVZHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		slog.Error("invalid pvz json", slog.Any("err", err))
 		http.Error(w, `{"message":"invalid request"}`, http.StatusBadRequest)
-		//metrics.SaveHTTPCount(1, r.URL.Path, http.StatusBadRequest, r.Method)
 		return
 	}
 
@@ -208,7 +207,6 @@ func (s *Server) CreatePVZHandler(w http.ResponseWriter, r *http.Request) {
 	err = s.Service.PVZ.CreatePVZ(ctx, pvz)
 	if errors.Is(err, er.ErrUnsupportedCity) {
 		http.Error(w, `{"message":"unsupported city"}`, http.StatusBadRequest)
-		//metrics.SaveHTTPCount(1, r.URL.Path, http.StatusInternalServerError, r.Method)
 		return
 	}
 

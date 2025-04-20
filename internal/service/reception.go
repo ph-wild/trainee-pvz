@@ -7,7 +7,6 @@ import (
 
 	er "trainee-pvz/internal/errors"
 	"trainee-pvz/internal/models"
-	//"trainee-pvz/internal/repository"
 )
 
 type ReceptionRepository interface {
@@ -32,6 +31,7 @@ func (s *ReceptionService) CreateReception(ctx context.Context, rec models.Recep
 	if err != nil {
 		return err
 	}
+
 	if hasOpen {
 		return er.ErrReceptionAlreadyExists
 	}
@@ -42,6 +42,7 @@ func (s *ReceptionService) CreateReception(ctx context.Context, rec models.Recep
 	}
 
 	s.metrics.SaveEntityCount(1, "reception")
+
 	return nil
 }
 
@@ -50,11 +51,9 @@ func (s *ReceptionService) CloseReception(ctx context.Context, id string) error 
 }
 
 func (s *ReceptionService) GetLastReceptionID(ctx context.Context, pvzID string) (string, error) {
-	//ErrNoOpenReception
 	return s.repo.GetLastReceptionID(ctx, pvzID)
 }
 
 func (s *ReceptionService) GetOpenReceptionID(ctx context.Context, pvzID string) (string, error) {
-	//ErrNoOpenReception
 	return s.repo.GetOpenReceptionID(ctx, pvzID)
 }

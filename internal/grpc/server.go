@@ -2,9 +2,9 @@ package pvz_proto
 
 import (
 	"context"
-	"log/slog"
 	"net"
 
+	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -42,12 +42,12 @@ func (s *PVZGRPCServer) GetPVZList(ctx context.Context, req *GetPVZListRequest) 
 func StartGRPCServer(repo *repository.PVZRepository, port string) error {
 	lis, err := net.Listen("tcp", port)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "can't listen port")
 	}
 
 	s := grpc.NewServer()
 	RegisterPVZServiceServer(s, NewPVZGRPCServer(*repo))
 	reflection.Register(s)
-	slog.Info("gRPC server started on", slog.String("port", port))
+
 	return s.Serve(lis)
 }

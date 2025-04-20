@@ -3,10 +3,9 @@ package service
 import (
 	"context"
 
-	"trainee-pvz/internal/models"
-
-	//"trainee-pvz/internal/repository"
 	"github.com/pkg/errors"
+
+	"trainee-pvz/internal/models"
 )
 
 type ProductRepository interface {
@@ -15,11 +14,11 @@ type ProductRepository interface {
 }
 
 type ProductService struct {
-	repo    ProductRepository //*repository.ProductRepository
+	repo    ProductRepository
 	metrics metrics
 }
 
-func NewProductService(repo ProductRepository, m metrics) *ProductService { //*repository.ProductRepository
+func NewProductService(repo ProductRepository, m metrics) *ProductService {
 	return &ProductService{repo: repo, metrics: m}
 }
 
@@ -30,11 +29,10 @@ func (s *ProductService) AddProduct(ctx context.Context, p models.Product) error
 	}
 
 	s.metrics.SaveEntityCount(1, "product")
+
 	return nil
 }
 
 func (s *ProductService) DeleteLastProduct(ctx context.Context, pvzID string) error {
-	//ErrNoProducts, ErrNoOpenReception
-	//err := s.repo.DeleteLast(ctx, receptionID)
 	return s.repo.DeleteLast(ctx, pvzID)
 }

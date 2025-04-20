@@ -26,6 +26,7 @@ func (r *ReceptionRepository) HasOpenReception(ctx context.Context, pvzID string
 	err := r.db.GetContext(ctx, &count, query, pvzID)
 	return count > 0, err
 }
+
 func (r *ReceptionRepository) GetLastReceptionID(ctx context.Context, pvzID string) (string, error) {
 	var id string
 	query := `
@@ -37,11 +38,12 @@ func (r *ReceptionRepository) GetLastReceptionID(ctx context.Context, pvzID stri
 	err := r.db.GetContext(ctx, &id, query, pvzID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return "", er.ErrNoOpenReception // тут ли?
+			return "", er.ErrNoOpenReception
 		}
 		slog.Error("failed to get last reception", slog.Any("err", err))
 		return "", errors.Wrap(err, "reception repo: cget last reception")
 	}
+
 	return id, nil
 }
 
@@ -52,6 +54,7 @@ func (r *ReceptionRepository) Create(ctx context.Context, rec models.Reception) 
 		slog.Error("create reception failed", slog.Any("err", err))
 		return errors.Wrap(err, "reception repo: create reception")
 	}
+
 	return nil
 }
 
@@ -62,6 +65,7 @@ func (r *ReceptionRepository) Close(ctx context.Context, id string) error {
 		slog.Error("close reception failed", slog.Any("err", err))
 		return errors.Wrap(err, "reception repo: close reception")
 	}
+
 	return nil
 }
 
@@ -73,7 +77,7 @@ func (r *ReceptionRepository) GetOpenReceptionID(ctx context.Context, pvzID stri
 		ORDER BY datetime DESC
 		LIMIT 1
 	`
-	//TODO in_progress
+
 	err := r.db.GetContext(ctx, &id, query, pvzID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

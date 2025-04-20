@@ -25,7 +25,7 @@ type metrics interface {
 }
 
 type PVZService struct {
-	repo    PVZRepository //*repository.PVZRepository
+	repo    PVZRepository
 	metrics metrics
 }
 
@@ -42,7 +42,9 @@ func (s *PVZService) CreatePVZ(ctx context.Context, pvz models.PVZ) error {
 		}
 
 		s.metrics.SaveEntityCount(1, "pvz")
+
 		return nil
+
 	default:
 		return er.ErrUnsupportedCity
 	}
@@ -50,4 +52,4 @@ func (s *PVZService) CreatePVZ(ctx context.Context, pvz models.PVZ) error {
 
 func (s *PVZService) ListPVZ(ctx context.Context, start, end *time.Time, page, limit int) ([]models.PVZWithReceptions, error) {
 	return s.repo.ListWithReceptionsAndProducts(ctx, start, end, page, limit)
-} //ErrNoPVZ
+}
