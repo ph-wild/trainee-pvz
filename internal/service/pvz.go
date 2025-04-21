@@ -13,11 +13,7 @@ import (
 
 type PVZRepository interface {
 	Create(ctx context.Context, pvz models.PVZ) error
-	ListWithReceptionsAndProducts(
-		ctx context.Context,
-		start, end *time.Time,
-		page, limit int,
-	) ([]models.PVZWithReceptions, error)
+	List(ctx context.Context, start, end *time.Time, page, limit int) ([]models.PVZ, error)
 }
 
 type metrics interface {
@@ -50,6 +46,6 @@ func (s *PVZService) CreatePVZ(ctx context.Context, pvz models.PVZ) error {
 	}
 }
 
-func (s *PVZService) ListPVZ(ctx context.Context, start, end *time.Time, page, limit int) ([]models.PVZWithReceptions, error) {
-	return s.repo.ListWithReceptionsAndProducts(ctx, start, end, page, limit)
+func (s *PVZService) ListPVZ(ctx context.Context, start, end *time.Time, page, limit int) ([]models.PVZ, error) {
+	return s.repo.List(ctx, start, end, page, limit)
 }

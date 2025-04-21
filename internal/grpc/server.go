@@ -7,6 +7,7 @@ import (
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"trainee-pvz/internal/repository"
@@ -22,7 +23,7 @@ func NewPVZGRPCServer(repo repository.PVZRepository) PVZServiceServer {
 }
 
 func (s *PVZGRPCServer) GetPVZList(ctx context.Context, req *GetPVZListRequest) (*GetPVZListResponse, error) {
-	data, err := s.repo.ListWithReceptionsAndProducts(ctx, nil, nil, 1, 100)
+	data, err := s.repo.List(ctx, nil, nil, 1, 100)
 	if err != nil {
 		return nil, err
 	}
@@ -30,9 +31,9 @@ func (s *PVZGRPCServer) GetPVZList(ctx context.Context, req *GetPVZListRequest) 
 	var resp GetPVZListResponse
 	for _, item := range data {
 		resp.Pvzs = append(resp.Pvzs, &PVZ{
-			Id:               item.PVZ.ID,
-			City:             item.PVZ.City,
-			RegistrationDate: timestamppb.New(item.PVZ.RegistrationDate),
+			Id:               item.ID,
+			City:             item.City,
+			RegistrationDate: timestamppb.New(item.RegistrationDate),
 		})
 	}
 

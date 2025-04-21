@@ -43,7 +43,7 @@ type ReceptionServiceInterface interface {
 
 type PVZServiceInterface interface {
 	CreatePVZ(ctx context.Context, pvz models.PVZ) error
-	ListPVZ(ctx context.Context, start, end *time.Time, page, limit int) ([]models.PVZWithReceptions, error)
+	ListPVZ(ctx context.Context, start, end *time.Time, page, limit int) ([]models.PVZ, error)
 }
 
 type Server struct {
@@ -119,6 +119,7 @@ func (s *Server) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 	resp := map[string]string{"token": token}
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(resp)
 }
 
@@ -421,10 +422,9 @@ func (s *Server) ListPVZHandler(w http.ResponseWriter, r *http.Request) {
 		t, err := time.Parse(time.RFC3339, v)
 		if err != nil {
 			slog.Error("start date is not parsed", slog.Any("err", err))
-			http.Error(w, `{"message":"internal error"}`, http.StatusBadRequest)
+			http.Error(w, `{"message":"invalid start date"}`, http.StatusBadRequest)
 			return
 		}
-		t = t.UTC()
 		start = &t
 	}
 
@@ -432,81 +432,39 @@ func (s *Server) ListPVZHandler(w http.ResponseWriter, r *http.Request) {
 		t, err := time.Parse(time.RFC3339, v)
 		if err != nil {
 			slog.Error("end date is not parsed", slog.Any("err", err))
-			http.Error(w, `{"message":"internal error"}`, http.StatusBadRequest)
+			http.Error(w, `{"message":"invalid end date"}`, http.StatusBadRequest)
 			return
 		}
-		t = t.UTC()
 		end = &t
 	}
 
 	if v := q.Get("page"); v != "" {
 		p, err := strconv.Atoi(v)
-		if err != nil && p <= 0 {
-			slog.Error("page is not correct", slog.Any("err", err))
-			http.Error(w, `{"message":"internal error"}`, http.StatusBadRequest)
-			return
+		if err == nil && p > 0 {
+			page = p
 		}
-		page = p
 	}
 
-	data, err := s.Service.PVZ.ListPVZ(ctx, start, end, page, limit)
-	if errors.Is(err, er.ErrNoPVZ) {
-		http.Error(w, `{"message":"PVZ not found"}`, http.StatusBadRequest)
-		return
-	}
-
+	pvzs, err := s.Service.PVZ.ListPVZ(ctx, start, end, page, limit)
 	if err != nil {
-		slog.Error("failed to list pvz", slog.Any("err", err))
+		slog.Error("failed to list filtered pvz", slog.Any("err", err))
 		http.Error(w, `{"message":"internal error"}`, http.StatusInternalServerError)
 		return
 	}
 
-	var response []map[string]any
-
-	for _, item := range data {
-		pvzID := uuid.MustParse(item.PVZ.ID)
-		openapiPVZ := openapi.PVZ{
-			Id:               (*openapi_types.UUID)(&pvzID),
-			City:             openapi.PVZCity(item.PVZ.City),
-			RegistrationDate: &item.PVZ.RegistrationDate,
-		}
-
-		var receptions []map[string]any
-		for _, rec := range item.Receptions {
-			recID := uuid.MustParse(rec.Reception.ID)
-			recMap := map[string]any{
-				"reception": openapi.Reception{
-					Id:       (*openapi_types.UUID)(&recID),
-					DateTime: rec.Reception.DateTime,
-					PvzId:    openapi_types.UUID(pvzID),
-					Status:   openapi.ReceptionStatus(rec.Reception.Status),
-				},
-			}
-
-			var products []openapi.Product
-			for _, p := range rec.Products {
-				pID := uuid.MustParse(p.ID)
-				rID := uuid.MustParse(p.ReceptionID)
-				products = append(products, openapi.Product{
-					Id:          (*openapi_types.UUID)(&pID),
-					DateTime:    &p.DateTime,
-					ReceptionId: openapi_types.UUID(rID),
-					Type:        openapi.ProductType(p.Type),
-				})
-			}
-
-			recMap["products"] = products
-			receptions = append(receptions, recMap)
-		}
-
-		response = append(response, map[string]any{
-			"pvz":        openapiPVZ,
-			"receptions": receptions,
+	var resp []openapi.PVZ
+	for _, pvz := range pvzs {
+		id := uuid.MustParse(pvz.ID)
+		resp = append(resp, openapi.PVZ{
+			Id:               (*openapi_types.UUID)(&id),
+			City:             openapi.PVZCity(pvz.City),
+			RegistrationDate: &pvz.RegistrationDate,
 		})
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(resp)
 }
 
 func (s *Server) Routes() *chi.Mux {

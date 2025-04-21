@@ -14,6 +14,7 @@ type PVZ struct {
 	RegistrationDate time.Time `db:"registration_date"`
 	City             string    `db:"city"`
 }
+
 type Reception struct {
 	ID       string    `db:"id"`
 	DateTime time.Time `db:"datetime"`
@@ -26,14 +27,4 @@ type Product struct {
 	DateTime    time.Time `db:"datetime"`
 	Type        string    `db:"type"`
 	ReceptionID string    `db:"reception_id"`
-}
-
-type PVZWithReceptions struct {
-	PVZ        PVZ
-	Receptions []ReceptionWithProducts
-}
-
-type ReceptionWithProducts struct {
-	Reception Reception
-	Products  []Product
 }

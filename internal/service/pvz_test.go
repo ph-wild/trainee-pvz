@@ -16,18 +16,14 @@ import (
 type fakePVZRepo struct {
 	createErr error
 	listErr   error
-	data      []models.PVZWithReceptions
+	data      []models.PVZ
 }
 
 func (f *fakePVZRepo) Create(ctx context.Context, pvz models.PVZ) error {
 	return f.createErr
 }
 
-func (f *fakePVZRepo) ListWithReceptionsAndProducts(
-	ctx context.Context,
-	start, end *time.Time,
-	page, limit int,
-) ([]models.PVZWithReceptions, error) {
+func (f *fakePVZRepo) List(ctx context.Context, start, end *time.Time, page, limit int) ([]models.PVZ, error) {
 	if f.listErr != nil {
 		return nil, f.listErr
 	}
@@ -70,23 +66,31 @@ func TestPVZService_CreatePVZ_RepoError(t *testing.T) {
 }
 
 func TestPVZService_ListPVZ_Success(t *testing.T) {
+	now := time.Now()
+
 	repo := &fakePVZRepo{
-		data: []models.PVZWithReceptions{
+		data: []models.PVZ{
 			{
-				PVZ: models.PVZ{ID: "1", City: "Казань"},
+				ID:               "1",
+				City:             "Казань",
+				RegistrationDate: now,
 			},
 		},
 	}
+
 	svc := service.NewPVZService(repo, &fakeMetrics{})
 
-	result, err := svc.ListPVZ(context.Background(), nil, nil, 1, 10)
+	start := now.Add(-time.Hour * 24)
+	end := now.Add(time.Hour * 24)
+
+	result, err := svc.ListPVZ(context.Background(), &start, &end, 1, 10)
 	assert.NoError(t, err)
 	assert.Len(t, result, 1)
-	assert.Equal(t, "Казань", result[0].PVZ.City)
+	assert.Equal(t, "Казань", result[0].City)
 }
 
 func TestPVZService_ListPVZ_Empty(t *testing.T) {
-	repo := &fakePVZRepo{data: []models.PVZWithReceptions{}}
+	repo := &fakePVZRepo{data: []models.PVZ{}}
 	svc := service.NewPVZService(repo, &fakeMetrics{})
 
 	result, err := svc.ListPVZ(context.Background(), nil, nil, 1, 10)

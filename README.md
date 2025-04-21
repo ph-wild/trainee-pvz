@@ -32,7 +32,7 @@ gRPC API: `localhost:3000`
 Метрики Prometheus: `http://localhost:9000/metrics​`  
 Swagger: `http://localhost:8080/swagger/index.html`  
 
-3. Для запуска unit-тестов с процентом покрытия выполните:
+3. Для запуска тестов с процентом покрытия выполните:
 ```
 make test
 ```
@@ -65,7 +65,6 @@ make test
 ├── Makefile                    # Файл с инструкциями
 └── README.md                   # Документация
 ```
-В `internal/service` и `internal/repository` разделение на product.go, pvz.go, receprion.go для собственного удобства (можно было в один файл). Слой service не содержит много дополнительной логики, но мог бы, решено оставить. 
 
 ## Схема базы данных
 ```
@@ -85,9 +84,10 @@ Cвязи:
 
 # Основные задания
 ## Swagger
-Swagger API доступно по `http://localhost:8080/swagger/index.html`.  
+Swagger API доступно по `http://localhost:8080/swagger/index.html`  
 Все handlers с из назначением видны по ссылке выше.  
 Доступные роли: moderator/employee.  
+Используемый формат для фильтрации по времени в методе `GET /pvz` - `time.RFC3339`.  
 
 ## Авторизация
 `/dummyLogin` возвращает заранее сгенерированный токен на основе выбранной роли пользователя (moderator/employee).  
