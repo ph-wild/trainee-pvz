@@ -183,3 +183,6 @@ slog.Info("Got shutdown signal, exit program")
 Для миграций используется goose. Установка: `go install github.com/pressly/goose/v3/cmd/goose@latest`  
 Запуск через `make migrate-up`  
 Находятся в папке `/migrations`
+
+## Dockerfile
+Дополнительно добавлена ветка InfraDocker, PR https://github.com/ph-wild/trainee-pvz/pull/1/files в которую вошло развертывание самого приложения PVZ через docker compose (добавлен Dockerfile). Через make run-all приложение разворачивается в контейнере (миграции в базу проходят, swagger открывается и все отрабатывает, метрики от prometheus доступны, gRPC отрабатывает). Но не успеваю дотестировать работоспособность и привести в порядок README и Makefile, что может запутать при тестировании моего решения, поэтому доработка не вошла в main.
