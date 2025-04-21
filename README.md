@@ -24,7 +24,7 @@ git clone github.com:ph-wild/trainee-pvz.git && cd trainee-pvz
 Для создания БД необходим goose (`go install github.com/pressly/goose/v3/cmd/goose@latest`): `make migrate-up`  
 Для запуска приложения: `make run`  
 ```
-make up && make migrate-up && make run
+make run-all
 ```
 Сервис будет доступен по следующим адресам:​  
 HTTP API: `http://localhost:8080`  

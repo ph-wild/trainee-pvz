@@ -27,12 +27,17 @@ down:
 	docker compose down --rmi all --volumes
 
 migrate-up:
-	goose -dir migrations postgres "postgres://pvz:pvzpassword@localhost:5445/pvz?sslmode=disable" up
+	goose -dir ./migrations postgres "postgres://pvz:pvzpassword@localhost:5445/pvz?sslmode=disable" up
 
 migrate-down:
-	goose -dir migrations postgres "postgres://pvz:pvzpassword@localhost:5445/pvz?sslmode=disable" down
+	goose -dir ./migrations postgres "postgres://pvz:pvzpassword@localhost:5445/pvz?sslmode=disable" down
 
-all: fmt tidy lint test build
+run-all:
+	make up
+	@echo "Waiting DB..."
+	sleep 5
+	make migrate-up
+	make run
 
 help:
 	@echo "Makefile for Go project:"
@@ -46,4 +51,4 @@ help:
 	@echo "  make down         - Delete DB and prometheus containers with volumes"
 	@echo "  make migrate-up   - Goose migrations up"
 	@echo "  make migrate-down - Goose migrations down"
-	@echo "  make all          - Run all steps (fmt, tidy, lint, test, build)"
+	@echo "  make run-all      - Run full preparing steps (up, migrate-up, )"
