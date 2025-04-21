@@ -34,10 +34,7 @@ migrate-down:
 
 run-all:
 	make up
-	@echo "Waiting DB..."
-	sleep 5
 	make migrate-up
-	make run
 
 help:
 	@echo "Makefile for Go project:"
@@ -51,4 +48,4 @@ help:
 	@echo "  make down         - Delete DB and prometheus containers with volumes"
 	@echo "  make migrate-up   - Goose migrations up"
 	@echo "  make migrate-down - Goose migrations down"
-	@echo "  make run-all      - Run full preparing steps (up, migrate-up, )"
+	@echo "  make run-all      - Run full preparing steps (up, migrate-up)"

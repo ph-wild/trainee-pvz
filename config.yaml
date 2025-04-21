@@ -1,5 +1,5 @@
 db:
-  connection: "postgres://pvz:pvzpassword@localhost:5445/pvz?sslmode=disable"
+  connection: "postgres://pvz:pvzpassword@db-pvz:5432/pvz?sslmode=disable"
 
 http_server:
   http_port: "8080"
